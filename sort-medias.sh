@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Requires: exiftool, mkdir, mv, date
-
+# Requires exiftool
 # Usage: ./sort-photos.sh [SRC_DIR] [DEST_DIR]
+
 if [ $# -lt 2 ]; then
     echo "Usage: $0 <SRC_DIR> <DEST_DIR>"
     echo "Example: $0 /path/to/photos /path/to/sorted-photos"
@@ -15,7 +15,7 @@ DEST_DIR="$2"
 mkdir -p "$DEST_DIR"
 
 FINDED_FILES_COUNT=0
-PROCESSED_COUNT=0
+SORTED_FILES_COUNT=0
 
 while IFS= read -r FILE; do
     let FINDED_FILES_COUNT++
@@ -32,21 +32,24 @@ while IFS= read -r FILE; do
             MONTH=${BASH_REMATCH[2]}
             DATE="$YEAR/$MONTH"
         fi
-        DATE="$YEAR/$MONTH"
+        if [[ -n "$YEAR" && -n "$MONTH" ]]; then
+            DATE="$YEAR/$MONTH"
+        fi
 
         echo "No EXIF date found, extracting date from file name: $DATE"
     fi
 
     if [[ -z "$DATE" ]]; then
-        echo "Could not determine date for $FILE, skipping."
-        continue
+        echo "Could not determine date for $FILE. Placing in 'unsorted' folder."
+        TARGET_DIR="$DEST_DIR/unsorted"
+    else
+        TARGET_DIR="$DEST_DIR/$DATE"
+        let SORTED_FILES_COUNT++
     fi
 
-    TARGET_DIR="$DEST_DIR/$DATE"
     mkdir -p "$TARGET_DIR"
-    cp -u "$FILE" "$TARGET_DIR/"
+    mv "$FILE" "$TARGET_DIR/"
     
-    let PROCESSED_COUNT++
 done < <(find "$SRC_DIR" -type f \
     \( -iname "*.jpg" \
     -o -iname "*.jpeg" \
@@ -62,4 +65,4 @@ done < <(find "$SRC_DIR" -type f \
 
 printf "\n\nFinal Summary:\n\n"
 echo "Number of files in source directory: ${FINDED_FILES_COUNT}"
-echo "Total files processed: ${PROCESSED_COUNT}"
+echo "Total files sorted: ${SORTED_FILES_COUNT}"
