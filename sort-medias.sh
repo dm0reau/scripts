@@ -51,6 +51,7 @@ done < <(find "$SRC_DIR" -type f \
     \( -iname "*.jpg" \
     -o -iname "*.jpeg" \
     -o -iname "*.png" \
+    -o -iname "*.heic" \
     -o -iname "*.mov" \
     -o -iname "*.mp4" \
     -o -iname "*.avi" \
